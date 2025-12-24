@@ -21,6 +21,7 @@ Dataset yang digunakan adalah **AG News Dataset**, yang terdiri dari berita berb
 - **Sports**
 - **Business**
 - **Sci/Tech**
+link dataset : [text](https://www.kaggle.com/datasets/amananandrai/ag-news-classification-dataset?resource=download)
 
 Setiap data merupakan gabungan dari **judul dan deskripsi berita**, sehingga cocok untuk tugas klasifikasi teks berbasis konteks.
 
