@@ -461,9 +461,8 @@ Terima kasih kepada:
 
 ---
 
-📧 Email: [email@student.umm.ac.id](mailto:email@student.umm.ac.id)  
-💼 LinkedIn: [linkedin.com/in/username](https://linkedin.com/in/username)  
-🐙 GitHub: [github.com/username](https://github.com/username)
+📧 Email: [andika.nurislamy@gmail.com](andika.nurislamy@gmail.com)  
+🐙 GitHub: [github.com/wzdik](https://github.com/wzdik)
 
 ---
 
@@ -475,16 +474,16 @@ Terima kasih kepada:
 
 <div align="center">
 
-**Made with ❤️ and ☕ by Andika Nur Islamy**
+**by Andika Nur Islamy**
 
 *"Dalam era informasi, kemampuan mengklasifikasi adalah kemampuan memahami."*
 
 ---
 
 ![Visitors](https://visitor-badge.laobi.icu/badge?page_id=username.ag-news-classification)
-[![GitHub Stars](https://img.shields.io/github/stars/username/repo?style=social)](https://github.com/username/repo/stargazers)
+[![GitHub Stars](https://img.shields.io/github/stars/username/repo?style=social)](https://github.com/wzdik/UAP_AndikaNurIslamy_2022-063_PembelajaranMesin-B.git)
 [![GitHub Forks](https://img.shields.io/github/forks/username/repo?style=social)](https://github.com/username/repo/network/members)
 
-**© 2024 Andika Nur Islamy | UAP Pembelajaran Mesin**
+**© 2025 Andika Nur Islamy | UAP Pembelajaran Mesin B**
 
 </div>
