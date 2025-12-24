@@ -8,16 +8,27 @@ if str(ROOT) not in sys.path:
 
 import re
 import json
+import os
 import numpy as np
 import streamlit as st
 import torch
 import joblib
+
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from huggingface_hub import hf_hub_download
 
 from src.config import MODELS_DIR, FIG_DIR, METRICS_DIR, CLASS_NAMES, RAW_DIR, LSTM_MAX_LEN
 from src.train_lstm import LSTMClassifier, clean_text
 from src.data_utils import load_agnews
 
+
+# =========================
+# HF SETTINGS
+# =========================
+# Bisa override dari Streamlit Secrets / env var kalau mau:
+# - Secrets: HF_REPO_ID="Andikaaa/uap-agnews-models"
+# - Env: export HF_REPO_ID=...
+HF_REPO_ID = st.secrets.get("HF_REPO_ID", os.getenv("HF_REPO_ID", "Andikaaa/uap-agnews-models"))
 
 # =========================
 # UI SETUP
@@ -88,11 +99,6 @@ def load_train_df():
 
 @st.cache_data
 def build_keywords_topk(topk: int = 15):
-    """
-    Top keywords per kelas (TF-IDF).
-    Ini bukan 'explain model', tapi cukup untuk bantu kamu tahu
-    jenis kata/tema yang umum di kelas tsb.
-    """
     from sklearn.feature_extraction.text import TfidfVectorizer
     import numpy as _np
 
@@ -117,37 +123,73 @@ def build_keywords_topk(topk: int = 15):
 
 
 # =========================
-# MODEL LOADING
+# MODEL LOADING (LOCAL -> HF fallback)
 # =========================
 @st.cache_resource
 def load_lstm():
+    """
+    Prefer lokal: MODELS_DIR/lstm/{vocab.joblib, model.pt}
+    Kalau tidak ada (misalnya di Streamlit Cloud), download dari HF repo.
+    """
     vocab_path = MODELS_DIR / "lstm" / "vocab.joblib"
     model_path = MODELS_DIR / "lstm" / "model.pt"
-    if not vocab_path.exists() or not model_path.exists():
+
+    # 1) Local first
+    if vocab_path.exists() and model_path.exists():
+        vocab = joblib.load(vocab_path)
+        model = LSTMClassifier(vocab_size=len(vocab))
+        try:
+            state = torch.load(model_path, map_location="cpu", weights_only=True)
+        except TypeError:
+            state = torch.load(model_path, map_location="cpu")
+        model.load_state_dict(state)
+        model.eval()
+        return model, vocab
+
+    # 2) HF fallback
+    try:
+        hf_vocab = hf_hub_download(repo_id=HF_REPO_ID, filename="lstm/vocab.joblib", repo_type="model")
+        hf_model = hf_hub_download(repo_id=HF_REPO_ID, filename="lstm/model.pt", repo_type="model")
+
+        vocab = joblib.load(hf_vocab)
+        model = LSTMClassifier(vocab_size=len(vocab))
+
+        try:
+            state = torch.load(hf_model, map_location="cpu", weights_only=True)
+        except TypeError:
+            state = torch.load(hf_model, map_location="cpu")
+
+        model.load_state_dict(state)
+        model.eval()
+        return model, vocab
+    except Exception:
         return None, None
 
-    vocab = joblib.load(vocab_path)
-    model = LSTMClassifier(vocab_size=len(vocab))
-
-    # load state dict lebih aman (hilangkan warning future)
-    try:
-        state = torch.load(model_path, map_location="cpu", weights_only=True)
-    except TypeError:
-        state = torch.load(model_path, map_location="cpu")
-
-    model.load_state_dict(state)
-    model.eval()
-    return model, vocab
 
 @st.cache_resource
 def load_hf(which: str):
+    """
+    Load transformer dari HF repo (subfolder):
+      - bert/final
+      - distilbert/final
+    Local fallback kalau folder ada.
+    """
+    # local path
     final_dir = MODELS_DIR / which / "final"
-    if not final_dir.exists():
+    if final_dir.exists():
+        tok = AutoTokenizer.from_pretrained(final_dir)
+        mdl = AutoModelForSequenceClassification.from_pretrained(final_dir)
+        mdl.eval()
+        return tok, mdl
+
+    # HF path
+    try:
+        tok = AutoTokenizer.from_pretrained(HF_REPO_ID, subfolder=f"{which}/final")
+        mdl = AutoModelForSequenceClassification.from_pretrained(HF_REPO_ID, subfolder=f"{which}/final")
+        mdl.eval()
+        return tok, mdl
+    except Exception:
         return None, None
-    tok = AutoTokenizer.from_pretrained(final_dir)
-    mdl = AutoModelForSequenceClassification.from_pretrained(final_dir)
-    mdl.eval()
-    return tok, mdl
 
 
 # =========================
@@ -239,7 +281,7 @@ with st.sidebar:
             c = CLASS_NAMES.index(pick_class)
             row = train_df[train_df["label"] == c].sample(1).iloc[0]
             st.session_state["sample"] = str(row["text"])
-    except Exception as e:
+    except Exception:
         st.warning("Dataset belum terbaca. Pastikan data/raw/train.csv & test.csv ada.")
 
     st.markdown("---")
@@ -307,7 +349,11 @@ with c2:
                 key = "bert"
 
             if pred is None:
-                st.error("Model belum ada. Jalankan training dulu (train_lstm / train_transformer).")
+                st.error(
+                    "Model belum bisa di-load.\n"
+                    "- Pastikan file final ada di Hugging Face (bert/final, distilbert/final, lstm/model.pt & vocab.joblib)\n"
+                    f"- Repo yang dipakai: {HF_REPO_ID}"
+                )
             else:
                 st.success(f"Prediksi: **{CLASS_NAMES[pred]}**")
 
@@ -318,14 +364,12 @@ with c2:
                 summ = load_json(METRICS_DIR / f"{key}_summary.json")
                 st.markdown("**Ringkas Evaluasi (Test):**")
                 if summ:
-                    # kompatibel untuk dua format: test_accuracy atau test_acc
                     acc = summ.get("test_accuracy", summ.get("test_acc", None))
                     st.write(f"- Accuracy: **{acc}**")
                     st.write(f"- Train samples: **{summ.get('train_samples','-')}**")
                 else:
                     st.write("- (summary belum ada)")
 
-                # interpretasi singkat (biar kamu paham cara baca)
                 top2 = np.argsort(probs)[-2:][::-1]
                 st.markdown("**Interpretasi cepat:**")
                 st.write(
@@ -385,7 +429,6 @@ with tab2:
             st.markdown(f"**{title}**")
             if img.exists():
                 st.image(str(img), use_column_width=True)
-
             else:
                 st.warning("Belum ada gambar CM.")
 
@@ -404,6 +447,5 @@ with tab3:
             st.markdown(f"**{title}**")
             if img.exists():
                 st.image(str(img), use_column_width=True)
-
             else:
                 st.warning("Belum ada kurva.")
