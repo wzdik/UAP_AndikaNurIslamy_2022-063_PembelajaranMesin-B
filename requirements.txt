@@ -1,0 +1,12 @@
+streamlit==1.39.0
+torch==2.2.2
+transformers==4.41.2
+datasets==2.19.1
+scikit-learn==1.4.2
+numpy
+pandas
+matplotlib
+seaborn
+joblib
+tf-keras
+huggingface-hub

@@ -1,0 +1,5 @@
+{
+  "model": "distilbert-base-uncased",
+  "train_samples": 10000,
+  "test_accuracy": 0.910921052631579
+}

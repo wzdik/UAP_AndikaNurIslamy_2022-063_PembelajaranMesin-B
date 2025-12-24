@@ -1,0 +1,5 @@
+{
+  "model": "bert-base-uncased",
+  "train_samples": 10000,
+  "test_accuracy": 0.9232894736842105
+}
