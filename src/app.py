@@ -384,7 +384,8 @@ with tab2:
             img = FIG_DIR / f"{key}_cm.png"
             st.markdown(f"**{title}**")
             if img.exists():
-                st.image(str(img), use_container_width=True)
+                st.image(str(img), use_column_width=True)
+
             else:
                 st.warning("Belum ada gambar CM.")
 
@@ -402,6 +403,7 @@ with tab3:
             img = FIG_DIR / f"{key}_loss_acc.png"
             st.markdown(f"**{title}**")
             if img.exists():
-                st.image(str(img), use_container_width=True)
+                st.image(str(img), use_column_width=True)
+
             else:
                 st.warning("Belum ada kurva.")
