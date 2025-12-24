@@ -118,7 +118,7 @@ Sistem website sederhana dibangun menggunakan **Streamlit** dengan fitur:
 
 ### 🔗 Live Demo
 👉 **Streamlit App**  
-https://uapandikanurislamy2022-063pembelajaranmesin-b.streamlit.app/
+Coming Soon, udah jadi kok
 
 ---
 
