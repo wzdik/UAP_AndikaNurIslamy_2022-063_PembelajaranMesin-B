@@ -6,10 +6,11 @@ scikit-learn
 joblib
 matplotlib
 
-torch>=2.5.0
-transformers>=4.45,<5
-datasets>=2.19,<3
+torch==2.2.2
+transformers==4.45.2
+datasets==2.21.0
 huggingface-hub>=0.24
+tokenizers>=0.20.0
+safetensors>=0.4.3
 sentencepiece
 protobuf<5
-tf-keras
