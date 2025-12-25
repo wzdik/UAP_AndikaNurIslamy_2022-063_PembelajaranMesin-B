@@ -285,7 +285,7 @@ Sistem website sederhana dibangun menggunakan **Streamlit** dengan antarmuka yan
 
 ### 🔗 Live Demo
 
-👉 **Streamlit App**: Coming Soon, udah jadi kok
+👉 **Streamlit App**: [Click link ini untuk live demo](https://uapandikanurislamy2022-063pembelajaranmesin-b.streamlit.app/)
 
 *Aplikasi akan segera di-deploy untuk demonstrasi publik!*
 
